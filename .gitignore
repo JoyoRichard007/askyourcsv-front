@@ -1,0 +1,150 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Streamlit
+.streamlit/
+*.streamlit
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# Environnement variables
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Supabase
+supabase/.temp
+supabase/.env
+supabase/seed.sql
+
+# Cache
+.cache/
+.cache/*
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Virtual environment
+.venv
+venv
+ENV
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+assets/old/
+temp/
+*.bak
+*.tmp
+
+# Streamlit specific
+.streamlit/secrets.toml
+*.streamlit/config.toml
+
+# API keys and secrets
+**/*.key
+**/*.pem
+**/*.crt
+**/*.env
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IDE - PyCharm
+.idea/
+*.iml
+*.iws
+
+# IDE - Visual Studio
+.vs/
+*.user
+*.suo
+
+# Backups
+*.backup
+*.bak
+backup/
+
+# Streamlit secrets (à mettre à la place)
+# Ne pas commiter ces fichiers !
+config.toml
+secrets.toml
+
+# Data files
+*.csv
+*.xlsx
+*.parquet
+!example.csv  # Si vous voulez garder un exemple
+
+# PDF and documents
+*.pdf
+*.docx
+*.pptx
