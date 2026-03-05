@@ -96,8 +96,8 @@ temp/
 *.tmp
 
 # Streamlit specific
-.streamlit/secrets.toml
-*.streamlit/config.toml
+# .streamlit/secrets.toml
+# *.streamlit/config.toml
 
 # API keys and secrets
 **/*.key
