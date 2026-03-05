@@ -15,6 +15,12 @@ dist/
 build/
 *.egg
 
+# # Streamlit
+# .streamlit/
+# *.streamlit
+# .streamlit/secrets.toml
+# .streamlit/config.toml
+
 # Environnement variables
 .env
 .env.local
