@@ -15,11 +15,11 @@ dist/
 build/
 *.egg
 
-# Streamlit
-.streamlit/
-*.streamlit
-.streamlit/secrets.toml
-.streamlit/config.toml
+# # Streamlit
+# .streamlit/
+# *.streamlit
+# .streamlit/secrets.toml
+# .streamlit/config.toml
 
 # Environnement variables
 .env
@@ -96,8 +96,8 @@ temp/
 *.tmp
 
 # Streamlit specific
-.streamlit/secrets.toml
-*.streamlit/config.toml
+# .streamlit/secrets.toml
+# *.streamlit/config.toml
 
 # API keys and secrets
 **/*.key
