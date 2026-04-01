@@ -15,7 +15,7 @@ st.set_page_config(
 load_dotenv()
 
 # URL de base de l'API
-API_BASE_URL = os.getenv("API_BASE_URL", "http://js4g88gcgkkkowks0cg8o40k.147.93.94.113.sslip.io")
+API_BASE_URL = os.getenv("API_BASE_URL", "https://askyourcsv-production-b417.up.railway.app")
 
 # Initialisation de la session state
 if "messages" not in st.session_state:
