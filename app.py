@@ -57,7 +57,8 @@ with st.sidebar:
     provider = st.selectbox(
         "Fournisseur",
         options=["google", "openai"],
-        index=0
+        index=0,
+        key="provider_select"
     )
     st.session_state.provider = provider
     
@@ -66,7 +67,8 @@ with st.sidebar:
         "Clé API",
         type="password",
         value=st.session_state.api_key,
-        help=f"Entrez votre clé API {provider}"
+        help=f"Entrez votre clé API {provider}",
+        key="api_key_input"
     )
     if api_key:
         st.session_state.api_key = api_key
@@ -82,7 +84,8 @@ with st.sidebar:
     model_name = st.selectbox(
         "Modèle",
         options=models,
-        index=models.index(default_model) if default_model in models else 0
+        index=models.index(default_model) if default_model in models else 0,
+        key="model_select"
     )
     st.session_state.model_name = model_name
     
@@ -92,7 +95,8 @@ with st.sidebar:
     st.header("📁 Fichier CSV")
     uploaded_file = st.file_uploader(
         "Choisissez un fichier",
-        type="csv"
+        type="csv",
+        key="csv_uploader"
     )
     
     if uploaded_file and st.session_state.api_key:
@@ -234,6 +238,7 @@ with tab_chart:
             "Décrivez le graphique",
             placeholder="Ex: Un histogramme des prix par catégorie",
             height=100,
+            key="chart_prompt_input"
         )
         if st.button("Générer le graphique", type="primary"):
             if not chart_prompt.strip():
