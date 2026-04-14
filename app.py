@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import os
+import plotly.io as pio
 from dotenv import load_dotenv
 
 # Configuration de la page
@@ -164,65 +165,108 @@ else:
     st.info("👈 Commencez par uploader un fichier CSV dans la sidebar")
 
 # Chat
-st.header("💬 Conversation")
+tab_chat, tab_chart = st.tabs(["💬 Conversation", "📊 Graphiques"])
 
-# Afficher l'historique
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+with tab_chat:
+    # Afficher l'historique
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-# Input pour nouvelle question
-if prompt := st.chat_input("Posez votre question..."):
-    # Vérifications
-    if not st.session_state.api_key:
-        st.error("⚠️ Veuillez d'abord entrer votre clé API")
-        st.stop()
+    # Input pour nouvelle question
+    if prompt := st.chat_input("Posez votre question..."):
+        # Vérifications
+        if not st.session_state.api_key:
+            st.error("⚠️ Veuillez d'abord entrer votre clé API")
+            st.stop()
+        if not st.session_state.process_id:
+            st.error("⚠️ Veuillez d'abord uploader un fichier CSV")
+            st.stop()
+
+        # Ajouter le message utilisateur
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Obtenir la réponse
+        with st.chat_message("assistant"):
+            with st.spinner("Analyse en cours..."):
+                try:
+                    url = f"{API_BASE_URL}/askcsv/double/{st.session_state.process_id}"
+
+                    messages_list = [
+                        {"role": msg["role"], "content": msg["content"]}
+                        for msg in st.session_state.messages
+                    ]
+
+                    payload = {
+                        "messages": messages_list,
+                        "api_key": st.session_state.api_key,
+                        "provider": st.session_state.provider,
+                        "model_name": st.session_state.model_name
+                    }
+
+                    response = requests.post(url, json=payload, timeout=60)
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        assistant_message = data["messages"][0]["content"]
+
+                        # Message simplifié si time limit
+                        if "Agent stopped due to iteration limit" in assistant_message:
+                            assistant_message = "La question était complexe. Pouvez-vous la reformuler plus simplement ?"
+
+                        st.markdown(assistant_message)
+                        st.session_state.messages.append({"role": "assistant", "content": assistant_message})
+                    else:
+                        st.error(f"❌ Erreur API")
+
+                except requests.exceptions.Timeout:
+                    st.warning("⚠️ Timeout - Question trop complexe")
+                except Exception as e:
+                    st.error(f"❌ Erreur")
+
+with tab_chart:
     if not st.session_state.process_id:
-        st.error("⚠️ Veuillez d'abord uploader un fichier CSV")
-        st.stop()
-    
-    # Ajouter le message utilisateur
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    
-    # Obtenir la réponse
-    with st.chat_message("assistant"):
-        with st.spinner("Analyse en cours..."):
-            try:
-                url = f"{API_BASE_URL}/askcsv/double/{st.session_state.process_id}"
-                
-                messages_list = [
-                    {"role": msg["role"], "content": msg["content"]}
-                    for msg in st.session_state.messages
-                ]
-                
-                payload = {
-                    "messages": messages_list,
-                    "api_key": st.session_state.api_key,
-                    "provider": st.session_state.provider,
-                    "model_name": st.session_state.model_name
-                }
-                
-                response = requests.post(url, json=payload, timeout=60)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    assistant_message = data["messages"][0]["content"]
-                    
-                    # Message simplifié si time limit
-                    if "Agent stopped due to iteration limit" in assistant_message:
-                        assistant_message = "La question était complexe. Pouvez-vous la reformuler plus simplement ?"
-                    
-                    st.markdown(assistant_message)
-                    st.session_state.messages.append({"role": "assistant", "content": assistant_message})
-                else:
-                    st.error(f"❌ Erreur API")
-                        
-            except requests.exceptions.Timeout:
-                st.warning("⚠️ Timeout - Question trop complexe")
-            except Exception as e:
-                st.error(f"❌ Erreur")
+        st.info("👈 Commencez par uploader un fichier CSV dans la sidebar")
+    else:
+        chart_prompt = st.text_area(
+            "Décrivez le graphique",
+            placeholder="Ex: Un histogramme des prix par catégorie",
+            height=100,
+        )
+        if st.button("Générer le graphique", type="primary"):
+            if not chart_prompt.strip():
+                st.warning("Veuillez décrire le graphique souhaité.")
+            elif not st.session_state.api_key:
+                st.error("⚠️ Veuillez d'abord entrer votre clé API")
+            else:
+                with st.spinner("Génération du graphique en cours..."):
+                    try:
+                        url = f"{API_BASE_URL}/chart/{st.session_state.process_id}"
+                        payload = {
+                            "prompt": chart_prompt.strip(),
+                            "api_key": st.session_state.api_key,
+                            "provider": st.session_state.provider,
+                            "model_name": st.session_state.model_name,
+                        }
+                        response = requests.post(url, json=payload, timeout=120)
+
+                        if response.status_code == 200:
+                            data = response.json()
+                            chart_json = data["chart_json"]
+                            fig = pio.from_json(chart_json)
+                            st.plotly_chart(fig, use_container_width=True)
+                        else:
+                            try:
+                                detail = response.json().get("detail", response.text)
+                            except Exception:
+                                detail = response.text
+                            st.error(f"❌ Erreur API : {detail}")
+                    except requests.exceptions.Timeout:
+                        st.warning("⚠️ Timeout - La génération a pris trop de temps")
+                    except Exception as e:
+                        st.error(f"❌ Erreur : {e}")
 
 # Footer minimal
 st.divider()
