@@ -4,7 +4,6 @@ enableCORS = false
 enableXsrfProtection = false
 enableWebsocketCompression = false
 maxUploadSize = 50
-websocketPingInterval = 1
 
 [browser]
 gatherUsageStats = false
