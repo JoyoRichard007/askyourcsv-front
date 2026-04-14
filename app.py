@@ -273,6 +273,13 @@ with tab_chart:
                     except Exception as e:
                         st.error(f"❌ Erreur : {e}")
 
+# Heartbeat pour maintenir le websocket actif sur Railway (évite le "Connecting...")
+@st.fragment(run_every=2)
+def _websocket_heartbeat():
+    pass
+
+_websocket_heartbeat()
+
 # Footer minimal
 st.divider()
 st.caption("© Dimension")
