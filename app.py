@@ -292,25 +292,31 @@ st.markdown("""
 <style>
 .scroll-btn {
     position: fixed;
-    bottom: 100px;
-    right: 24px;
-    width: 36px;
-    height: 36px;
+    bottom: 80px;
+    right: 20px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: #667eea;
-    color: white;
+    background: rgba(102, 126, 234, 0.55);
+    color: #ffffff !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 13px;
+    font-weight: 700;
     text-decoration: none;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     z-index: 999999;
     border: none;
     font-family: sans-serif;
-    transition: transform 0.15s, background 0.15s;
+    opacity: 0.85;
+    transition: opacity 0.15s, transform 0.15s, background 0.15s;
 }
-.scroll-btn:hover { background: #5a6fd6; transform: scale(1.08); }
+.scroll-btn:hover {
+    background: rgba(102, 126, 234, 0.9);
+    opacity: 1;
+    transform: scale(1.05);
+}
 </style>
 <a href="#bottom-anchor" class="scroll-btn">↓</a>
 """, unsafe_allow_html=True)
