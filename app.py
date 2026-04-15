@@ -283,43 +283,37 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                 st.session_state.messages.append({"role": "assistant", "content": f"❌ Erreur"})
                 st.rerun()
 
-# Scroll auto vers le bas quand un nouveau message assistant arrive
-if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
-    components.html(
-        """
-        <script>
-            try {
-                window.parent.scrollTo({top: window.parent.document.documentElement.scrollHeight, behavior: 'smooth'});
-            } catch(e) {}
-        </script>
-        """,
-        height=0,
-    )
+# Ancre pour scroll en bas (sera la cible du lien)
+if "bottom_anchor" not in st.session_state:
+    st.session_state.bottom_anchor = True
 
-# Bouton flottant pour scroller vers le bas (créé dynamiquement dans le DOM parent)
-components.html(
-    """
-    <script>
-    (function(){
-        try {
-            var parentDoc = window.parent.document;
-            if (parentDoc.getElementById('kimi-scroll-btn')) return;
-            var btn = parentDoc.createElement('div');
-            btn.id = 'kimi-scroll-btn';
-            btn.innerHTML = '↓';
-            btn.style.cssText = 'position:fixed;bottom:80px;right:30px;width:45px;height:45px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:999999;border:none;font-family:sans-serif;user-select:none;transition:transform 0.2s;';
-            btn.addEventListener('mouseenter', function(){ btn.style.transform = 'scale(1.05)'; btn.style.background = '#5a6fd6'; });
-            btn.addEventListener('mouseleave', function(){ btn.style.transform = 'scale(1)'; btn.style.background = '#667eea'; });
-            btn.addEventListener('click', function(){
-                window.parent.scrollTo({top: parentDoc.documentElement.scrollHeight, behavior: 'smooth'});
-            });
-            parentDoc.body.appendChild(btn);
-        } catch(e) {}
-    })();
-    </script>
-    """,
-    height=0,
-)
+# Bouton flottant lien HTML natif (pas de JS)
+st.markdown("""
+<style>
+.scroll-btn {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    z-index: 999999;
+    border: none;
+    font-family: sans-serif;
+    transition: transform 0.15s, background 0.15s;
+}
+.scroll-btn:hover { background: #5a6fd6; transform: scale(1.08); }
+</style>
+<a href="#bottom-anchor" class="scroll-btn">↓</a>
+""", unsafe_allow_html=True)
 
 # Heartbeat pour maintenir le websocket actif sur Railway (évite le "Connecting...")
 @st.fragment(run_every=2)
@@ -331,3 +325,6 @@ _websocket_heartbeat()
 # Footer minimal
 st.divider()
 st.caption("© Dimension")
+
+# Ancre finale pour le scroll vers le bas
+st.markdown('<div id="bottom-anchor" style="height:0px;"></div>', unsafe_allow_html=True)
