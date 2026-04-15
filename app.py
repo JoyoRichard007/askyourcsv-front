@@ -285,23 +285,23 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
 
 # Scroll auto vers le bas quand un nouveau message assistant arrive
 if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
-    components.html(
+    st.markdown(
         """
         <script>
-            try {
-                window.parent.scrollTo({top: window.parent.document.documentElement.scrollHeight, behavior: 'smooth'});
-            } catch(e) {}
+            (function(){
+                window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'});
+            })();
         </script>
         """,
-        height=0,
+        unsafe_allow_html=True,
     )
 
-# Bouton flottant pour scroller vers le bas (injecté dans le DOM principal via markdown)
+# Bouton flottant pour scroller vers le bas (injecté dans le DOM principal)
 st.markdown("""
 <style>
 #scroll-bottom-btn {
     position: fixed;
-    bottom: 140px;
+    bottom: 80px;
     right: 30px;
     width: 45px;
     height: 45px;
@@ -322,32 +322,17 @@ st.markdown("""
 #scroll-bottom-btn:hover { background: #5a6fd6; transform: scale(1.05); }
 </style>
 <div id="scroll-bottom-btn">↓</div>
-""", unsafe_allow_html=True)
-
-# Script dans un component qui attache le listener au bouton du DOM parent (avec polling)
-components.html(
-    """
-    <script>
-    (function attach(){
-        try {
-            var btn = window.parent.document.getElementById('scroll-bottom-btn');
-            if (btn && !btn.dataset.ready) {
-                btn.addEventListener('click', function(){
-                    window.parent.scrollTo({top: window.parent.document.documentElement.scrollHeight, behavior: 'smooth'});
-                });
-                btn.dataset.ready = "1";
-                console.log('Scroll button listener attached');
-            } else if (!btn) {
-                setTimeout(attach, 200);
-            }
-        } catch(e) {
-            console.error('Scroll button attach error', e);
+<script>
+    (function(){
+        var btn = document.getElementById('scroll-bottom-btn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'});
+            });
         }
     })();
-    </script>
-    """,
-    height=0,
-)
+</script>
+""", unsafe_allow_html=True)
 
 # Heartbeat pour maintenir le websocket actif sur Railway (évite le "Connecting...")
 @st.fragment(run_every=2)
