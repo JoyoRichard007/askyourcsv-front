@@ -10,3 +10,6 @@ gatherUsageStats = false
 
 [runner]
 fastReruns = true
+
+[theme]
+base = "light"

@@ -16,10 +16,8 @@ build/
 *.egg
 
 # Streamlit
-.streamlit/
-*.streamlit
 .streamlit/secrets.toml
-.streamlit/config.toml
+*.streamlit
 
 # Environnement variables
 .env
@@ -97,7 +95,6 @@ temp/
 
 # Streamlit specific
 .streamlit/secrets.toml
-*.streamlit/config.toml
 
 # API keys and secrets
 **/*.key
@@ -135,8 +132,8 @@ backup/
 
 # Streamlit secrets (à mettre à la place)
 # Ne pas commiter ces fichiers !
-config.toml
 secrets.toml
+.streamlit/secrets.toml
 
 # Data files
 *.csv
