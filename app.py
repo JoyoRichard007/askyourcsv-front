@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import os
 import plotly.io as pio
+import streamlit.components.v1 as components
 from dotenv import load_dotenv
 
 # Configuration de la page
@@ -169,33 +170,66 @@ else:
     st.info("👈 Commencez par uploader un fichier CSV dans la sidebar")
 
 # Chat
-tab_chat, tab_chart = st.tabs(["💬 Conversation", "📊 Graphiques"])
-
-with tab_chat:
-    # Afficher l'historique
+with st.container():
+    # Afficher l'historique complet
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            if message.get("chart_json"):
+                fig = pio.from_json(message["chart_json"])
+                st.plotly_chart(fig, use_container_width=True)
 
-    # Input pour nouvelle question
-    if prompt := st.chat_input("Posez votre question..."):
-        # Vérifications
-        if not st.session_state.api_key:
-            st.error("⚠️ Veuillez d'abord entrer votre clé API")
-            st.stop()
-        if not st.session_state.process_id:
-            st.error("⚠️ Veuillez d'abord uploader un fichier CSV")
-            st.stop()
+# Input toujours en bas
+if prompt := st.chat_input("Posez votre question..."):
+    if not st.session_state.api_key:
+        st.error("⚠️ Veuillez d'abord entrer votre clé API")
+        st.stop()
+    if not st.session_state.process_id:
+        st.error("⚠️ Veuillez d'abord uploader un fichier CSV")
+        st.stop()
 
-        # Ajouter le message utilisateur
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.rerun()
 
-        # Obtenir la réponse
-        with st.chat_message("assistant"):
-            with st.spinner("Analyse en cours..."):
-                try:
+# Génération de la réponse si le dernier message est utilisateur
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+    last_prompt = st.session_state.messages[-1]["content"]
+    chart_keywords = [
+        "graphique", "graph", "chart", "histogramme", "diagramme",
+        "camembert", "pie chart", "barre", "courbe", "plot", "visualisation"
+    ]
+    is_chart_request = any(kw in last_prompt.lower() for kw in chart_keywords)
+
+    with st.chat_message("assistant"):
+        with st.spinner("Analyse en cours..."):
+            try:
+                if is_chart_request:
+                    # Court-circuiter l'agent pour les graphiques -> appel direct /chart (plus rapide)
+                    url = f"{API_BASE_URL}/chart/{st.session_state.process_id}"
+                    payload = {
+                        "prompt": last_prompt,
+                        "api_key": st.session_state.api_key,
+                        "provider": st.session_state.provider,
+                        "model_name": st.session_state.model_name,
+                    }
+                    response = requests.post(url, json=payload, timeout=120)
+
+                    if response.status_code == 200:
+                        data = response.json()
+                        chart_json = data["chart_json"]
+                        assistant_msg = {
+                            "role": "assistant",
+                            "content": "Voici le graphique demandé :",
+                            "chart_json": chart_json
+                        }
+                        st.markdown(assistant_msg["content"])
+                        fig = pio.from_json(chart_json)
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.session_state.messages.append(assistant_msg)
+                        st.rerun()
+                    else:
+                        st.error(f"❌ Erreur API")
+                else:
                     url = f"{API_BASE_URL}/askcsv/double/{st.session_state.process_id}"
 
                     messages_list = [
@@ -210,68 +244,73 @@ with tab_chat:
                         "model_name": st.session_state.model_name
                     }
 
-                    response = requests.post(url, json=payload, timeout=60)
+                    response = requests.post(url, json=payload, timeout=120)
 
                     if response.status_code == 200:
                         data = response.json()
                         assistant_message = data["messages"][0]["content"]
+                        chart_json = data.get("chart_json")
 
                         # Message simplifié si time limit
                         if "Agent stopped due to iteration limit" in assistant_message:
                             assistant_message = "La question était complexe. Pouvez-vous la reformuler plus simplement ?"
 
                         st.markdown(assistant_message)
-                        st.session_state.messages.append({"role": "assistant", "content": assistant_message})
+                        assistant_msg = {"role": "assistant", "content": assistant_message}
+                        if chart_json:
+                            fig = pio.from_json(chart_json)
+                            st.plotly_chart(fig, use_container_width=True)
+                            assistant_msg["chart_json"] = chart_json
+                        st.session_state.messages.append(assistant_msg)
+                        st.rerun()
                     else:
                         st.error(f"❌ Erreur API")
 
-                except requests.exceptions.Timeout:
-                    st.warning("⚠️ Timeout - Question trop complexe")
-                except Exception as e:
-                    st.error(f"❌ Erreur")
+            except requests.exceptions.Timeout:
+                st.warning("⚠️ Timeout - Question trop complexe")
+                st.session_state.messages.append({"role": "assistant", "content": "⚠️ Timeout - Question trop complexe"})
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Erreur")
+                st.session_state.messages.append({"role": "assistant", "content": f"❌ Erreur"})
+                st.rerun()
 
-with tab_chart:
-    if not st.session_state.process_id:
-        st.info("👈 Commencez par uploader un fichier CSV dans la sidebar")
-    else:
-        chart_prompt = st.text_area(
-            "Décrivez le graphique",
-            placeholder="Ex: Un histogramme des prix par catégorie",
-            height=100,
-            key="chart_prompt_input"
-        )
-        if st.button("Générer le graphique", type="primary"):
-            if not chart_prompt.strip():
-                st.warning("Veuillez décrire le graphique souhaité.")
-            elif not st.session_state.api_key:
-                st.error("⚠️ Veuillez d'abord entrer votre clé API")
-            else:
-                with st.spinner("Génération du graphique en cours..."):
-                    try:
-                        url = f"{API_BASE_URL}/chart/{st.session_state.process_id}"
-                        payload = {
-                            "prompt": chart_prompt.strip(),
-                            "api_key": st.session_state.api_key,
-                            "provider": st.session_state.provider,
-                            "model_name": st.session_state.model_name,
-                        }
-                        response = requests.post(url, json=payload, timeout=120)
+# Scroll auto vers le bas quand un nouveau message assistant arrive
+if st.session_state.messages and st.session_state.messages[-1]["role"] == "assistant":
+    components.html(
+        """
+        <script>
+            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+        </script>
+        """,
+        height=0,
+    )
 
-                        if response.status_code == 200:
-                            data = response.json()
-                            chart_json = data["chart_json"]
-                            fig = pio.from_json(chart_json)
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            try:
-                                detail = response.json().get("detail", response.text)
-                            except Exception:
-                                detail = response.text
-                            st.error(f"❌ Erreur API : {detail}")
-                    except requests.exceptions.Timeout:
-                        st.warning("⚠️ Timeout - La génération a pris trop de temps")
-                    except Exception as e:
-                        st.error(f"❌ Erreur : {e}")
+# Bouton flottant pour scroller vers le bas (toujours visible)
+st.markdown("""
+<style>
+.scroll-bottom-btn {
+    position: fixed;
+    bottom: 140px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    border: none;
+}
+.scroll-bottom-btn:hover { background: #5a6fd6; transform: scale(1.05); }
+</style>
+<div class="scroll-bottom-btn" onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});">↓</div>
+""", unsafe_allow_html=True)
 
 # Heartbeat pour maintenir le websocket actif sur Railway (évite le "Connecting...")
 @st.fragment(run_every=2)
