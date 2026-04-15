@@ -228,7 +228,11 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                         st.session_state.messages.append(assistant_msg)
                         st.rerun()
                     else:
-                        st.error(f"❌ Erreur API")
+                        try:
+                            err_detail = response.json().get("detail", response.text)
+                        except Exception:
+                            err_detail = response.text
+                        st.error(f"❌ Erreur API : {err_detail}")
                 else:
                     url = f"{API_BASE_URL}/askcsv/double/{st.session_state.process_id}"
 
@@ -264,7 +268,11 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
                         st.session_state.messages.append(assistant_msg)
                         st.rerun()
                     else:
-                        st.error(f"❌ Erreur API")
+                        try:
+                            err_detail = response.json().get("detail", response.text)
+                        except Exception:
+                            err_detail = response.text
+                        st.error(f"❌ Erreur API : {err_detail}")
 
             except requests.exceptions.Timeout:
                 st.warning("⚠️ Timeout - Question trop complexe")
