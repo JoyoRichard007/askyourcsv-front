@@ -324,11 +324,11 @@ st.markdown("""
 <div id="scroll-bottom-btn">↓</div>
 """, unsafe_allow_html=True)
 
-# Script dans un component qui attache le listener au bouton du DOM parent
+# Script dans un component qui attache le listener au bouton du DOM parent (avec polling)
 components.html(
     """
     <script>
-    (function(){
+    (function attach(){
         try {
             var btn = window.parent.document.getElementById('scroll-bottom-btn');
             if (btn && !btn.dataset.ready) {
@@ -336,8 +336,13 @@ components.html(
                     window.parent.scrollTo({top: window.parent.document.documentElement.scrollHeight, behavior: 'smooth'});
                 });
                 btn.dataset.ready = "1";
+                console.log('Scroll button listener attached');
+            } else if (!btn) {
+                setTimeout(attach, 200);
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error('Scroll button attach error', e);
+        }
     })();
     </script>
     """,
