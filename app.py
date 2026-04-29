@@ -364,7 +364,7 @@ hr {
 # Header / Nav custom
 st.html("""
 <div class="custom-nav">
-    <a class="brand" href="http://localhost:8501" target="_self">
+    <a class="brand" href="https://askyourcsv-production.up.railway.app" target="_self">
         <div class="brand-mark">▤</div>
         askyourcsv<span style="color:var(--ay-accent)">.</span>
     </a>
