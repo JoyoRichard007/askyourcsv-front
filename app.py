@@ -20,6 +20,12 @@ st.html("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
+/* Hide Streamlit chrome */
+[data-testid="stHeader"] {display: none !important;}
+[data-testid="stFooter"] {display: none !important;}
+[data-testid="stMainMenu"] {display: none !important;}
+#MainMenu {display: none !important;}
+
 :root {
   --ay-bg: #16181f;
   --ay-panel: #1f222a;
@@ -137,7 +143,7 @@ p, li, div, span {
   border: 1px solid var(--ay-line-2) !important;
   border-radius: 8px !important;
   font-family: var(--ay-mono) !important;
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 500 !important;
 }
 [data-testid="stFileUploader"] button:hover {
@@ -394,17 +400,17 @@ def read_csv_with_encoding(file, encodings=['utf-8', 'latin1', 'cp1252']):
     for encoding in encodings:
         try:
             file.seek(0)
-            df = pd.read_csv(file, encoding=encoding, nrows=5)  # Lire seulement 5 lignes pour l'aperçu
+            df = pd.read_csv(file, encoding=encoding, nrows=6)  # Lire 6 lignes pour l'aperçu
             return df, encoding
         except UnicodeDecodeError:
             continue
     file.seek(0)
-    df = pd.read_csv(file, encoding='latin1', errors='replace', nrows=5)
+    df = pd.read_csv(file, encoding='latin1', errors='replace', nrows=6)
     return df, 'latin1 (with replacements)'
 
 # Interface principale
 st.html("""
-<div style="max-width:860px;margin:0 auto 4px;width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+<div style="max-width:860px;margin:0 0 4px 0;width:100%;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
     <div>
         <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.015em;color:var(--ay-ink)">AskYourCSV</h1>
         <div style="font-family:var(--ay-mono);font-size:10.5px;color:var(--ay-ink-3);margin-top:4px">Posez des questions en langage naturel sur vos fichiers CSV.</div>
@@ -492,7 +498,7 @@ with st.sidebar:
                             "encoding": encoding,
                             "columns": list(df.columns),
                             "rows_preview": len(df),
-                            "sample": df.head(3)
+                            "sample": df.head(6)
                         }
                         
                         st.success("Fichier uploadé !")
@@ -531,11 +537,8 @@ if st.session_state.process_id and st.session_state.uploaded_filename:
     # Afficher un mini aperçu dans un expander
     if hasattr(st.session_state, 'df_info') and st.session_state.df_info:
         with st.expander("Aperçu rapide", expanded=False):
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write(f"**Colonnes:** {', '.join(st.session_state.df_info['columns'])}")
-            with col2:
-                st.write(f"**Encodage:** {st.session_state.df_info['encoding']}")
+            st.caption(f"{st.session_state.df_info['rows_preview']} lignes · {len(st.session_state.df_info['columns'])} colonnes · {st.session_state.df_info['encoding']}")
+            st.dataframe(st.session_state.df_info['sample'], use_container_width=True, hide_index=True)
 else:
     st.info("← Commencez par uploader un fichier CSV dans la sidebar")
 
