@@ -26,6 +26,35 @@ st.html("""
 [data-testid="stMainMenu"] {display: none !important;}
 #MainMenu {display: none !important;}
 
+/* Force sidebar collapsed control to stay visible even when header is hidden */
+[data-testid="stSidebarCollapsedControl"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0.5rem !important;
+  left: 0.5rem !important;
+}
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] > div {
+  background: var(--ay-panel) !important;
+  border: 1px solid var(--ay-line-2) !important;
+  border-radius: 8px !important;
+  color: var(--ay-ink) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+}
+[data-testid="stSidebarCollapsedControl"] button:hover,
+[data-testid="stSidebarCollapsedControl"] > div:hover {
+  background: var(--ay-panel-2) !important;
+  border-color: var(--ay-accent) !important;
+}
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] path {
+  fill: var(--ay-ink) !important;
+  color: var(--ay-ink) !important;
+}
+
 :root {
   --ay-bg: #16181f;
   --ay-panel: #1f222a;
@@ -369,7 +398,7 @@ st.html("""
         askyourcsv<span style="color:var(--ay-accent)">.</span>
     </a>
     <div class="nav-links">
-        <a href="http://localhost:8501" target="_self">Landing</a>
+        <a href="https://askyourcsv-production.up.railway.app" target="_self">Landing</a>
         <a href="https://t.me/askyourcsv_bot" target="_blank">Telegram</a>
     </div>
 </div>
